@@ -46,6 +46,14 @@
         </div>
     </div>
 
+    <!-- Гистограмма -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Постановка на учёт за последние 60 дней</h5>
+            <canvas id="regChart" height="90"></canvas>
+        </div>
+    </div>
+
     <!-- Таблица -->
     <!-- Поиск, сортировка, счётчик -->
     <form th:action="@{/cars}" method="get" class="row g-2 mb-3">
@@ -104,5 +112,29 @@
         </tbody>
     </table>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script th:inline="javascript">
+    const labels = /*[[${chartLabels}]]*/ [];
+    const values = /*[[${chartValues}]]*/ [];
+
+    new Chart(document.getElementById('regChart'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Количество машин',
+                data: values,
+                backgroundColor: 'rgba(13, 110, 253, 0.7)'
+            }]
+        },
+        options: {
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 } },
+                x: { ticks: { maxRotation: 90, minRotation: 90, autoSkip: false, font: { size: 9 } } }
+            }
+        }
+    });
+</script>
 </body>
 </html>

@@ -7,6 +7,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import java.util.List;
 
@@ -73,7 +78,6 @@ public class CarController {
         return "redirect:/cars";
     }
 
-    // Общая часть: список машин, поисковый запрос, режим сортировки и счётчик
     private void fillList(Model model, String q, String sort) {
         List<Car> cars = "year".equals(sort)
                 ? carRepository.searchSortedByYear(q)
@@ -85,5 +89,22 @@ public class CarController {
         model.addAttribute("count", count);
         model.addAttribute("q", q);
         model.addAttribute("sort", sort);
+
+        // Гистограмма: последние 60 дней, включая сегодня
+        LocalDate today = LocalDate.now();
+        LocalDate from = today.minusDays(59);
+        Map<LocalDate, Long> perDay = new HashMap<>();
+        for (Object[] row : carRepository.countByDay(from, today)) {
+            perDay.put((LocalDate) row[0], (Long) row[1]);
+        }
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd.MM");
+        List<String> chartLabels = new ArrayList<>();
+        List<Long> chartValues = new ArrayList<>();
+        for (LocalDate d = from; !d.isAfter(today); d = d.plusDays(1)) {
+            chartLabels.add(d.format(fmt));
+            chartValues.add(perDay.getOrDefault(d, 0L));
+        }
+        model.addAttribute("chartLabels", chartLabels);
+        model.addAttribute("chartValues", chartValues);
     }
 }
